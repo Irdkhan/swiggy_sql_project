@@ -1,23 +1,21 @@
-# SQL Project: Data Analysis for Zomato - A Food Delivery Company
+# SQL Project: Data Analysis for Swiggy - A Food Delivery Company
 
 ## Overview
 
-This project demonstrates my SQL problem-solving skills through the analysis of data for Zomato, a popular food delivery company in India. The project involves setting up the database, importing data, handling null values, and solving a variety of business problems using complex SQL queries.
+This project demonstrates my SQL problem-solving skills through the analysis of data for Swiggy, a popular food delivery company in India. The project involves setting up the database, importing data, handling null values, and solving various business problems using complex SQL queries.
 
 [ERD](https://github.com/Irdkhan/swiggy_sql_project/blob/main/erd.png)
 
 ## Project Structure
 
-- **Database Setup:** Creation of the `zomato_db` database and the required tables.
+- **Database Setup:** Creation of the `swiggy_db` database and the required tables.
 - **Data Import:** Inserting sample data into the tables.
 - **Data Cleaning:** Handling null values and ensuring data integrity.
-- **Business Problems:** Solving 20 specific business problems using SQL queries.
-
-![ERD](https://github.com/najirh/zomato_sqlp3/blob/main/erd.png)
+- **Business Problems:** Solving 10 specific business problems using SQL queries.
 
 ## Database Setup
 ```sql
-CREATE DATABASE zomato_db;
+CREATE DATABASE swiggy_db;
 ```
 
 ### 1. Dropping Existing Tables
@@ -76,7 +74,7 @@ CREATE TABLE deliveries (
 
 ## Data Cleaning and Handling Null Values
 
-Before performing analysis, I ensured that the data was clean and free from null values where necessary. For instance:
+Before performing the analysis, I ensured that the data was clean and free from null values where necessary. For instance:
 
 ```sql
 UPDATE orders
@@ -112,47 +110,8 @@ FROM -- table name
 WHERE rank <= 5
 ```
 
-### 2. Popular Time Slots
--- Question: Identify the time slots during which the most orders are placed. based on 2-hour intervals.
 
-**Approach 1:**
-
-```sql
--- Approach 1
-SELECT 
-	FLOOR(EXTRACT(HOUR FROM order_time)/2)*2 as start_time,
-	FLOOR(EXTRACT(HOUR FROM order_time)/2)*2 + 2 as end_time,
-	COUNT(*) as total_orders
-FROM orders
-GROUP BY 1, 2
-ORDER BY 3 DESC;
-```
-
-**Approach 2:**
-
-```sql
-SELECT
-    CASE
-        WHEN EXTRACT(HOUR FROM order_time) BETWEEN 0 AND 1 THEN '00:00 - 02:00'
-        WHEN EXTRACT(HOUR FROM order_time) BETWEEN 2 AND 3 THEN '02:00 - 04:00'
-        WHEN EXTRACT(HOUR FROM order_time) BETWEEN 4 AND 5 THEN '04:00 - 06:00'
-        WHEN EXTRACT(HOUR FROM order_time) BETWEEN 6 AND 7 THEN '06:00 - 08:00'
-        WHEN EXTRACT(HOUR FROM order_time) BETWEEN 8 AND 9 THEN '08:00 - 10:00'
-        WHEN EXTRACT(HOUR FROM order_time) BETWEEN 10 AND 11 THEN '10:00 - 12:00'
-        WHEN EXTRACT(HOUR FROM order_time) BETWEEN 12 AND 13 THEN '12:00 - 14:00'
-        WHEN EXTRACT(HOUR FROM order_time) BETWEEN 14 AND 15 THEN '14:00 - 16:00'
-        WHEN EXTRACT(HOUR FROM order_time) BETWEEN 16 AND 17 THEN '16:00 - 18:00'
-        WHEN EXTRACT(HOUR FROM order_time) BETWEEN 18 AND 19 THEN '18:00 - 20:00'
-        WHEN EXTRACT(HOUR FROM order_time) BETWEEN 20 AND 21 THEN '20:00 - 22:00'
-        WHEN EXTRACT(HOUR FROM order_time) BETWEEN 22 AND 23 THEN '22:00 - 00:00'
-    END AS time_slot,
-    COUNT(order_id) AS order_count
-FROM Orders
-GROUP BY time_slot
-ORDER BY order_count DESC;
-```
-
-### 3. Order Value Analysis
+### 2. Order Value Analysis
 -- Question: Find the average order value per customer who has placed more than 750 orders.
 -- Return customer_name, and aov(average order value)
 
@@ -168,7 +127,7 @@ GROUP BY 1
 HAVING  COUNT(order_id) > 750;
 ```
 
-### 4. High-Value Customers
+### 3. High-Value Customers
 -- Question: List the customers who have spent more than 100K in total on food orders.
 -- return customer_name, and customer_id!
 
@@ -184,7 +143,7 @@ GROUP BY 1
 HAVING SUM(o.total_amount) > 100000;
 ```
 
-### 5. Orders Without Delivery
+### 4. Orders Without Delivery
 -- Question: Write a query to find orders that were placed but not delivered. 
 -- Return each restuarant name, city and number of not delivered orders 
 
@@ -219,7 +178,7 @@ ORDER BY 2 DESC
 ```
 
 
-### 6. Restaurant Revenue Ranking: 
+### 5. Restaurant Revenue Ranking: 
 -- Rank restaurants by their total revenue from the last year, including their name, 
 -- total revenue, and rank within their city.
 
@@ -246,7 +205,7 @@ WHERE rank = 1;
 
 ```
 
-### 7. Most Popular Dish by City: 
+### 6. Most Popular Dish by City: 
 -- Identify the most popular dish in each city based on the number of orders.
 
 ```sql
@@ -266,7 +225,7 @@ GROUP BY 1, 2
 WHERE rank = 1;
 ```
 
-### 8. Customer Churn: 
+### 7. Customer Churn: 
 -- Find customers who haven’t placed an order in 2024 but did in 2023.
 
 ```sql
@@ -279,60 +238,7 @@ WHERE
 					WHERE EXTRACT(YEAR FROM order_date) = 2024);
 ```
 
-### 9. Cancellation Rate Comparison: 
--- Calculate and compare the order cancellation rate for each restaurant between the 
--- current year and the previous year.
-
-```sql
-WITH cancel_ratio_23 AS (
-    SELECT 
-        o.restaurant_id,
-        COUNT(o.order_id) AS total_orders,
-        COUNT(CASE WHEN d.delivery_id IS NULL THEN 1 END) AS not_delivered
-    FROM orders AS o
-    LEFT JOIN deliveries AS d
-    ON o.order_id = d.order_id
-    WHERE EXTRACT(YEAR FROM o.order_date) = 2023
-    GROUP BY o.restaurant_id
-),
-cancel_ratio_24 AS (
-    SELECT 
-        o.restaurant_id,
-        COUNT(o.order_id) AS total_orders,
-        COUNT(CASE WHEN d.delivery_id IS NULL THEN 1 END) AS not_delivered
-    FROM orders AS o
-    LEFT JOIN deliveries AS d
-    ON o.order_id = d.order_id
-    WHERE EXTRACT(YEAR FROM o.order_date) = 2024
-    GROUP BY o.restaurant_id
-),
-last_year_data AS (
-    SELECT 
-        restaurant_id,
-        total_orders,
-        not_delivered,
-        ROUND((not_delivered::numeric / total_orders::numeric) * 100, 2) AS cancel_ratio
-    FROM cancel_ratio_23
-),
-current_year_data AS (
-    SELECT 
-        restaurant_id,
-        total_orders,
-        not_delivered,
-        ROUND((not_delivered::numeric / total_orders::numeric) * 100, 2) AS cancel_ratio
-    FROM cancel_ratio_24
-)	
-
-SELECT 
-    c.restaurant_id AS restaurant_id,
-    c.cancel_ratio AS current_year_cancel_ratio,
-    l.cancel_ratio AS last_year_cancel_ratio
-FROM current_year_data AS c
-JOIN last_year_data AS l
-ON c.restaurant_id = l.restaurant_id;
-```
-
-### 10. Rider Average Delivery Time: 
+### 8. Rider Average Delivery Time: 
 -- Determine each rider's average delivery time.
 
 ```sql
@@ -351,7 +257,7 @@ ON o.order_id = d.order_id
 WHERE d.delivery_status = 'Delivered';
 ```
 
-### 11. Monthly Restaurant Growth Ratio: 
+### 9. Monthly Restaurant Growth Ratio: 
 -- Calculate each restaurant's growth ratio based on the total number of delivered orders since its joining
 
 ```sql
@@ -385,7 +291,7 @@ SELECT
 FROM growth_ratio;
 ```
 
-### 12. Customer Segmentation: 
+### 10. Customer Segmentation: 
 -- Customer Segmentation: Segment customers into 'Gold' or 'Silver' groups based on their total spending 
 -- compared to the average order value (AOV). If a customer's total spending exceeds the AOV, 
 -- label them as 'Gold'; otherwise, label them as 'Silver'. Write an SQL query to determine each segment's 
@@ -412,7 +318,7 @@ FROM
 GROUP BY 1;
 ```
 
-### 13. Rider Monthly Earnings: 
+### 11. Rider Monthly Earnings: 
 -- Calculate each rider's total monthly earnings, assuming they earn 8% of the order amount.
 
 ```sql
@@ -428,73 +334,8 @@ GROUP BY 1, 2
 ORDER BY 1, 2;
 ```
 
-### Q.14 Rider Ratings Analysis: 
--- Find the number of 5-star, 4-star, and 3-star ratings each rider has.
--- riders receive this rating based on delivery time.
--- If orders are delivered less than 15 minutes of order received time the rider get 5 star rating,
--- if they deliver 15 and 20 minute they get 4 star rating 
--- if they deliver after 20 minute they get 3 star rating.
 
-```sql
-SELECT 
-	rider_id,
-	stars,
-	COUNT(*) as total_stars
-FROM
-(
-	SELECT
-		rider_id,
-		delivery_took_time,
-		CASE 
-			WHEN delivery_took_time < 15 THEN '5 star'
-			WHEN delivery_took_time BETWEEN 15 AND 20 THEN '4 star'
-			ELSE '3 star'
-		END as stars
-		
-	FROM
-	(
-		SELECT 
-			o.order_id,
-			o.order_time,
-			d.delivery_time,
-			EXTRACT(EPOCH FROM (d.delivery_time - o.order_time + 
-			CASE WHEN d.delivery_time < o.order_time THEN INTERVAL '1 day' 
-			ELSE INTERVAL '0 day' END
-			))/60 as delivery_took_time,
-			d.rider_id
-		FROM orders as o
-		JOIN deliveries as d
-		ON o.order_id = d.order_id
-		WHERE delivery_status = 'Delivered'
-	) as t1
-) as t2
-GROUP BY 1, 2
-ORDER BY 1, 3 DESC;
-```
-
-### 15. Q.15 Order Frequency by Day: 
--- Analyze order frequency per day of the week and identify the peak day for each restaurant.
-
-```sql
-SELECT * FROM
-(
-	SELECT 
-		r.restaurant_name,
-		-- o.order_date,
-		TO_CHAR(o.order_date, 'Day') as day,
-		COUNT(o.order_id) as total_orders,
-		RANK() OVER(PARTITION BY r.restaurant_name ORDER BY COUNT(o.order_id)  DESC) as rank
-	FROM orders as o
-	JOIN
-	restaurants as r
-	ON o.restaurant_id = r.restaurant_id
-	GROUP BY 1, 2
-	ORDER BY 1, 3 DESC
-	) as t1
-WHERE rank = 1;
-```
-
-### 16. Customer Lifetime Value (CLV): 
+### 12. Customer Lifetime Value (CLV): 
 -- Calculate the total revenue generated by each customer over all their orders.
 
 ```sql
@@ -508,7 +349,7 @@ ON o.customer_id = c.customer_id
 GROUP BY 1, 2;
 ```
 
-### 17. Monthly Sales Trends: 
+### 13. Monthly Sales Trends: 
 -- Identify sales trends by comparing each month's total sales to the previous month.
 
 ```sql
@@ -521,7 +362,7 @@ FROM orders
 GROUP BY 1, 2;
 ```
 
-### 18. Rider Efficiency: 
+### 14. Rider Efficiency: 
 -- Evaluate rider efficiency by determining average delivery times and identifying those with the lowest and highest averages.
 
 ```sql
@@ -556,7 +397,7 @@ SELECT
 FROM riders_time;
 ```
 
-### 19. Order Item Popularity: 
+### 15. Order Item Popularity: 
 -- Track the popularity of specific order items over time and identify seasonal demand spikes.
 
 ```sql
@@ -581,7 +422,7 @@ GROUP BY 1, 2
 ORDER BY 1, 3 DESC;
 ```
 
-### 20. Rank each city based on the total revenue for last year 2023
+### 16. Rank each city based on the total revenue for last year, 2023
 ```sql
 SELECT 
 	r.city,
@@ -596,7 +437,7 @@ GROUP BY 1;
 
 ## Conclusion
 
-This project highlights my ability to handle complex SQL queries and provides solutions to real-world business problems in the context of a food delivery service like Zomato. The approach taken here demonstrates a structured problem-solving methodology, data manipulation skills, and the ability to derive actionable insights from data.
+This project highlights my ability to handle complex SQL queries and provides solutions to real-world business problems in the context of a food delivery service like Swiggy. The approach taken here demonstrates a structured problem-solving methodology, data manipulation skills, and the ability to derive actionable insights from data.
 
 ## Notice 
-All customer names and data used in this project are computer-generated using AI and random functions. They do not represent real data associated with Zomato or any other entity. This project is solely for learning and educational purposes, and any resemblance to actual persons, businesses, or events is purely coincidental.
+All customer names and data used in this project are computer-generated using AI and random functions. They do not represent real data associated with Swiggy or any other entity. This project is solely for learning and educational purposes, and any resemblance to actual persons, businesses, or events is purely coincidental.
